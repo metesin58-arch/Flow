@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Capacitior
+ios/App/Pods
+ios/App/Podfile.lock
+android/
+dist
+node_modules

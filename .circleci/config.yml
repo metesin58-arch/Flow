@@ -1,0 +1,32 @@
+version: 2.1
+
+jobs:
+  build-ios:
+    macos:
+      xcode: "15.4.0" # Use a modern Xcode version
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: npm install
+      - run:
+          name: Build Web App
+          command: npm run build
+      - run:
+          name: Capacitor Sync
+          command: npx cap sync ios
+      - run:
+          name: Install CocoaPods
+          command: |
+              cd ios/App
+              pod install
+      - run:
+          name: Build Xcode Project
+          command: |
+            xcodebuild -workspace ios/App/App.xcworkspace -scheme App -sdk iphoneos -configuration Debug build CODE_SIGNING_ALLOWED=NO
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build-ios
