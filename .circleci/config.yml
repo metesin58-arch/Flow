@@ -22,16 +22,51 @@ jobs:
               # Try CDN first, then fall back to master repo if needed
               pod install --repo-update || (pod repo add-cdn master https://cdn.cocoapods.org && pod install)
       - run:
-          name: Build Xcode Project
+          name: Install CocoaPods
+          command: |
+              cd ios/App
+              pod install --repo-update || (pod repo add-cdn master https://cdn.cocoapods.org && pod install)
+      - run:
+          name: Prepare Code Signing
+          command: |
+            # Create a temporary keychain
+            security create-keychain -p "" build.keychain
+            security list-keychains -s build.keychain
+            security default-keychain -s build.keychain
+            security unlock-keychain -p "" build.keychain
+            security set-keychain-settings -t 3600 -u build.keychain
+
+            # Decode and import certificate
+            echo $P12_CERTIFICATE | base64 --decode > release.p12
+            security import release.p12 -k build.keychain -P "$P12_PASSWORD" -T /usr/bin/codesign
+
+            # Decode and install provisioning profile
+            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+            echo $PROVISIONING_PROFILE | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+            # Fix for codesign
+            security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+      - run:
+          name: Archive Xcode Project
           command: |
             xcodebuild -workspace ios/App/App.xcworkspace \
                        -scheme App \
-                       -sdk iphonesimulator \
-                       -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.5' \
-                       -configuration Debug \
-                       build \
-                       CODE_SIGNING_ALLOWED=NO \
-                       CODE_SIGNING_REQUIRED=NO
+                       -sdk iphoneos \
+                       -configuration Release \
+                       archive \
+                       -archivePath ios/App/App.xcarchive \
+                       CODE_SIGN_STYLE=Manual \
+                       PROVISIONING_PROFILE_SPECIFIER=profile
+      - run:
+          name: Export IPA
+          command: |
+            xcodebuild -exportArchive \
+                       -archivePath ios/App/App.xcarchive \
+                       -exportPath ios/App/build \
+                       -exportOptionsPlist ios/App/ExportOptions.plist
+      - store_artifacts:
+          path: ios/App/build/App.ipa
+          destination: App.ipa
 
 workflows:
   version: 2
