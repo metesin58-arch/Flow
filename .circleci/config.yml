@@ -19,7 +19,7 @@ jobs:
           name: Install CocoaPods
           command: |
               cd ios/App
-              pod install
+              pod install --repo-update || (pod repo update && pod install)
       - run:
           name: Build Xcode Project
           command: |
