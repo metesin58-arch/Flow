@@ -23,7 +23,14 @@ jobs:
       - run:
           name: Build Xcode Project
           command: |
-            xcodebuild -workspace ios/App/App.xcworkspace -scheme App -sdk iphoneos -configuration Debug build CODE_SIGNING_ALLOWED=NO
+            xcodebuild -workspace ios/App/App.xcworkspace \
+                       -scheme App \
+                       -sdk iphonesimulator \
+                       -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.5' \
+                       -configuration Debug \
+                       build \
+                       CODE_SIGNING_ALLOWED=NO \
+                       CODE_SIGNING_REQUIRED=NO
 
 workflows:
   version: 2
