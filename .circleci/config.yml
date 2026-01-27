@@ -19,7 +19,8 @@ jobs:
           name: Install CocoaPods
           command: |
               cd ios/App
-              pod install --repo-update || (pod repo update && pod install)
+              # Try CDN first, then fall back to master repo if needed
+              pod install --repo-update || (pod repo add-cdn master https://cdn.cocoapods.org && pod install)
       - run:
           name: Build Xcode Project
           command: |
