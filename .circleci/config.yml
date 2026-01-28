@@ -16,54 +16,15 @@ jobs:
           name: Capacitor Sync
           command: npx cap sync ios
       - run:
-          name: Install CocoaPods
+          name: Install Fastlane
           command: |
-              cd ios/App
-              # Try CDN first, then fall back to master repo if needed
-              pod install --repo-update || (pod repo add-cdn master https://cdn.cocoapods.org && pod install)
+            cd ios/App
+            bundle install
       - run:
-          name: Prepare Code Signing
+          name: Fastlane Build
           command: |
-            if [ -z "$P12_CERTIFICATE" ] || [ -z "$PROVISIONING_PROFILE" ]; then
-              echo "Error: P12_CERTIFICATE or PROVISIONING_PROFILE is missing from environment variables."
-              exit 1
-            fi
-
-            # Create a temporary keychain
-            security create-keychain -p "" build.keychain
-            security list-keychains -s build.keychain
-            security default-keychain -s build.keychain
-            security unlock-keychain -p "" build.keychain
-            security set-keychain-settings -t 3600 -u build.keychain
-
-            # Decode and import certificate (using printf for better handling of long strings)
-            printf "%s" "$P12_CERTIFICATE" | base64 -D > release.p12
-            security import release.p12 -k build.keychain -P "$P12_PASSWORD" -A -T /usr/bin/codesign
-
-            # Decode and install provisioning profile
-            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-            printf "%s" "$PROVISIONING_PROFILE" | base64 -D > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
-
-            # Fix for codesign
-            security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
-      - run:
-          name: Archive Xcode Project
-          command: |
-            xcodebuild -workspace ios/App/App.xcworkspace \
-                       -scheme App \
-                       -sdk iphoneos \
-                       -configuration Release \
-                       archive \
-                       -archivePath ios/App/App.xcarchive \
-                       CODE_SIGN_STYLE=Manual \
-                       PROVISIONING_PROFILE_SPECIFIER=flowify
-      - run:
-          name: Export IPA
-          command: |
-            xcodebuild -exportArchive \
-                       -archivePath ios/App/App.xcarchive \
-                       -exportPath ios/App/build \
-                       -exportOptionsPlist ios/App/ExportOptions.plist
+            cd ios/App
+            bundle exec fastlane build
       - store_artifacts:
           path: ios/App/build/App.ipa
           destination: App.ipa
