@@ -24,6 +24,8 @@ jobs:
           name: Fastlane Build
           command: |
             cd ios/App
+            export TERM=xterm
+            export FASTLANE_DISABLE_COLORS=1
             bundle exec fastlane build
       - store_artifacts:
           path: ios/App/build/App.ipa
