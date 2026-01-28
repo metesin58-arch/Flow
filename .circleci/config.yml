@@ -22,11 +22,6 @@ jobs:
               # Try CDN first, then fall back to master repo if needed
               pod install --repo-update || (pod repo add-cdn master https://cdn.cocoapods.org && pod install)
       - run:
-          name: Install CocoaPods
-          command: |
-              cd ios/App
-              pod install --repo-update || (pod repo add-cdn master https://cdn.cocoapods.org && pod install)
-      - run:
           name: Prepare Code Signing
           command: |
             if [ -z "$P12_CERTIFICATE" ] || [ -z "$PROVISIONING_PROFILE" ]; then
@@ -61,7 +56,7 @@ jobs:
                        archive \
                        -archivePath ios/App/App.xcarchive \
                        CODE_SIGN_STYLE=Manual \
-                       PROVISIONING_PROFILE_SPECIFIER=profile
+                       PROVISIONING_PROFILE_SPECIFIER=flowify
       - run:
           name: Export IPA
           command: |
