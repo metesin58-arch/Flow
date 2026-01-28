@@ -36,13 +36,13 @@ jobs:
             security unlock-keychain -p "" build.keychain
             security set-keychain-settings -t 3600 -u build.keychain
 
-            # Decode and import certificate
-            echo "$P12_CERTIFICATE" | base64 --decode > release.p12
+            # Decode and import certificate (using printf for better handling of long strings)
+            printf "%s" "$P12_CERTIFICATE" | base64 -D > release.p12
             security import release.p12 -k build.keychain -P "$P12_PASSWORD" -A -T /usr/bin/codesign
 
             # Decode and install provisioning profile
             mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-            echo "$PROVISIONING_PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+            printf "%s" "$PROVISIONING_PROFILE" | base64 -D > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
             # Fix for codesign
             security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
