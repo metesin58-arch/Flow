@@ -15,7 +15,7 @@
     <key>provisioningProfiles</key>
     <dict>
         <key>com.flowify.game</key>
-        <string>YOUR_PROVISIONING_PROFILE_NAME</string>
+        <string>flowify</string>
     </dict>
 </dict>
 </plist>
